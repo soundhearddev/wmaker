@@ -467,80 +467,75 @@ static void randomPlaceWindow(WWindow *wwin, int *x_ret, int *y_ret,
 
 void PlaceWindow(WWindow *wwin, int *x_ret, int *y_ret, unsigned *width, unsigned *height)
 {
-	WScreen *scr = wwin->screen_ptr;
-	int h = WMFontHeight(scr->title_font)
-		+ (wPreferences.window_title_clearance + TITLEBAR_EXTEND_SPACE) * 2;
+    WScreen *scr = wwin->screen_ptr;
+    int h = WMFontHeight(scr->title_font)
+        + (wPreferences.window_title_clearance + TITLEBAR_EXTEND_SPACE) * 2;
 
-	if (h > wPreferences.window_title_max_height)
-		h = wPreferences.window_title_max_height;
+    if (h > wPreferences.window_title_max_height)
+        h = wPreferences.window_title_max_height;
 
-	if (h < wPreferences.window_title_min_height)
-		h = wPreferences.window_title_min_height;
+    if (h < wPreferences.window_title_min_height)
+        h = wPreferences.window_title_min_height;
 
-	WArea usableArea = wGetUsableAreaForHead(scr, wGetHeadForPointerLocation(scr),
-						 NULL, True);
+    WArea usableArea = wGetUsableAreaForHead(scr, wGetHeadForPointerLocation(scr),
+                         NULL, True);
 
-	switch (wPreferences.window_placement) {
-	case WPM_MANUAL:
-		InteractivePlaceWindow(wwin, x_ret, y_ret, *width, *height);
-		break;
+    switch (wPreferences.window_placement) {
+    case WPM_MANUAL:
+        InteractivePlaceWindow(wwin, x_ret, y_ret, *width, *height);
+        break;
 
-	case WPM_SMART:
-		smartTileWindow(wwin, x_ret, y_ret, width, height, usableArea);
-		break;
+    case WPM_SMART:
+        smartTileWindow(wwin, x_ret, y_ret, width, height, usableArea);
+        break;
 
-	case WPM_CENTER:
-		if (center_place_window(wwin, x_ret, y_ret, *width, *height, usableArea))
-			break;
-		/* Fall through. */
+    case WPM_CENTER:
+        if (center_place_window(wwin, x_ret, y_ret, *width, *height, usableArea))
+            break;
+        /* Fall through. */
 
-	case WPM_AUTO:
-		if (autoPlaceWindow(wwin, x_ret, y_ret, *width, *height, False, usableArea)) {
-			break;
-		} else if (autoPlaceWindow(wwin, x_ret, y_ret, *width, *height, True, usableArea)) {
-			break;
-		}
-		/* there isn't a break here, because if we fail, it should fall
-		   through to cascade placement, as people who want tiling want
-		   automagicness aren't going to want to place their window */
+    case WPM_AUTO:
+        if (autoPlaceWindow(wwin, x_ret, y_ret, *width, *height, False, usableArea)) {
+            break;
+        } else if (autoPlaceWindow(wwin, x_ret, y_ret, *width, *height, True, usableArea)) {
+            break;
+        }
+        /* Fall through. */
 
-		/* Fall through. */
+    case WPM_CASCADE:
+        if (wPreferences.window_placement == WPM_AUTO || wPreferences.window_placement == WPM_CENTER)
+            scr->cascade_index++;
 
-	case WPM_CASCADE:
-		if (wPreferences.window_placement == WPM_AUTO || wPreferences.window_placement == WPM_CENTER)
-			scr->cascade_index++;
+        cascadeWindow(scr, wwin, x_ret, y_ret, *width, *height, h, usableArea);
 
-		cascadeWindow(scr, wwin, x_ret, y_ret, *width, *height, h, usableArea);
+        if (wPreferences.window_placement == WPM_CASCADE)
+            scr->cascade_index++;
+        break;
 
-		if (wPreferences.window_placement == WPM_CASCADE)
-			scr->cascade_index++;
-		break;
+    case WPM_RANDOM:
+        randomPlaceWindow(wwin, x_ret, y_ret, *width, *height, usableArea);
+        break;
+    }
 
-	case WPM_RANDOM:
-		randomPlaceWindow(wwin, x_ret, y_ret, *width, *height, usableArea);
-		break;
-	}
-		}
+    if (wPreferences.window_placement == WPM_SMART) {
+        WTileStrip *strip = scr->workspaces[scr->current_workspace]->tile_strip;
 
-	if (wPreferences.window_placement == WPM_SMART) {
-		WTileStrip *strip = scr->workspaces[scr->current_workspace]->tile_strip;
+        if (strip && strip->enabled)
+            return;
+    }
 
-		if (strip && strip->enabled)
-			return;
-	}
+    /*
+     * clip to usableArea instead of full screen
+     * this will also take dock/clip etc.. into account
+     * as well as being xinerama friendly
+     */
+    if ((unsigned)(*x_ret) + *width > (unsigned)usableArea.x2)
+        *x_ret = usableArea.x2 - *width;
+    if (*x_ret < usableArea.x1)
+        *x_ret = usableArea.x1;
 
-	/*
-	 * clip to usableArea instead of full screen
-	 * this will also take dock/clip etc.. into account
-	 * as well as being xinerama friendly
-	 */
-	if ((unsigned)(*x_ret) + *width > (unsigned)usableArea.x2)
-		*x_ret = usableArea.x2 - *width;
-	if (*x_ret < usableArea.x1)
-		*x_ret = usableArea.x1;
-
-	if ((unsigned)(*y_ret) + *height > (unsigned)usableArea.y2)
-		*y_ret = usableArea.y2 - *height;
-	if (*y_ret < usableArea.y1)
-		*y_ret = usableArea.y1;
+    if ((unsigned)(*y_ret) + *height > (unsigned)usableArea.y2)
+        *y_ret = usableArea.y2 - *height;
+    if (*y_ret < usableArea.y1)
+        *y_ret = usableArea.y1;
 }
