@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Window Maker
+Comment=This session logs you into Window Maker
+Exec=wmaker
+TryExec=wmaker
+DesktopNames=WindowMaker

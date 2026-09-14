@@ -1,0 +1,32 @@
+/* geomview.h
+ *
+ *  Copyright (c) 2000 Alfredo K. Kojima
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef GEOMVIEW_H
+#define GEOMVIEW_H
+
+typedef struct W_GeometryView WGeometryView;
+
+
+WGeometryView *WCreateGeometryView(WMScreen *scr);
+
+void WSetGeometryViewShownPosition(WGeometryView *gview, int x, int y);
+
+void WSetGeometryViewShownSize(WGeometryView *gview,
+                               unsigned width, unsigned height);
+
+#endif  /* GEOMVIEW_H */
